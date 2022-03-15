@@ -24,9 +24,11 @@ find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(bboxes_ex_msgs QUIET)
+# find_package(bboxes_ex_msgs QUIET)
 find_package(yolo_msgs REQUIRED)
 find_package(yolox_cpp)
+
+find_package(yaml-cpp REQUIRED)
 
 if(NOT yolox_cpp_FOUND)
   message(WARNING "skipping yolox_ros_cpp, no yolox_cpp found")
@@ -47,6 +49,7 @@ target_include_directories(yolox_ros_cpp PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
+target_link_libraries(yolox_ros_cpp -lyaml-cpp)
 
 ament_target_dependencies(yolox_ros_cpp
   rclcpp
@@ -59,7 +62,7 @@ ament_target_dependencies(yolox_ros_cpp
   OpenCV
   yolox_cpp
   yolo_msgs
-  bboxes_ex_msgs
+  # bboxes_ex_msgs
   )
 
 

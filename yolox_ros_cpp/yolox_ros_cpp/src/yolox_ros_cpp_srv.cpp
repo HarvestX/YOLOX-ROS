@@ -79,7 +79,7 @@ namespace yolox_ros_cpp_srv
         this->declare_parameter<std::string>("publish_image_topic_name", "yolox/image_raw");
         this->declare_parameter<std::string>("publish_boundingbox_topic_name", "yolox/bounding_boxes");
 
-        this->declare_parameter<std::string>("class_yaml", "/root/coco.yaml");
+        this->declare_parameter<std::string>("class_yaml", "");
 
         this->get_parameter("imshow_isshow", this->imshow_);
         this->get_parameter("model_path", this->model_path_);
@@ -105,9 +105,20 @@ namespace yolox_ros_cpp_srv
         RCLCPP_INFO(this->get_logger(), "Set parameter src_image_topic_name: '%s'", this->src_image_topic_name_.c_str());
         RCLCPP_INFO(this->get_logger(), "Set parameter publish_image_topic_name: '%s'", this->publish_image_topic_name_.c_str());
         RCLCPP_INFO(this->get_logger(), "Set parameter publish_boundingbox_topic_name: '%s'", this->publish_boundingbox_topic_name_.c_str());
-        RCLCPP_INFO(this->get_logger(), "Set parameter class_yaml file path: '%s'", this->yaml_file_name_.c_str());
-
-        bboxes.load_yaml(this->yaml_file_name_);
+        
+        if (this->yaml_file_name_.size() > 0)
+        {
+            RCLCPP_INFO(this->get_logger(), "Set parameter class_yaml file path: '%s'", this->yaml_file_name_.c_str());
+            if (this->load_yaml(this->yaml_file_name_))
+            {
+                RCLCPP_INFO(this->get_logger(), "Load class_yaml file success");
+            }
+            else
+            {
+                RCLCPP_ERROR(this->get_logger(), "Load class_yaml file failed");
+            }
+            
+        }
     }
     // void YoloXSrv::colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr& ptr){
     //     auto img = cv_bridge::toCvCopy(ptr, "bgr8");
@@ -154,8 +165,16 @@ namespace yolox_ros_cpp_srv
         auto now = std::chrono::system_clock::now();
         auto objects = this->yolox_->inference(frame);
 
-        // yolox_cpp::utils::draw_objects(frame, objects);
-        this->draw_objects(frame, objects);
+        if (this->yaml_file_name_.size() > 0)
+        {
+            this->draw_objects(frame, objects);
+            yolox_cpp::utils::draw_objects(frame, objects);
+        }
+        else
+        {
+            yolox_cpp::utils::draw_objects(frame, objects);
+        }
+        
         std::vector<yolo_msgs::msg::BoundingBox> boxes = objects_to_bboxes(frame, objects, img->header);
         // std::vector<yolo_msgs::msg::BoundingBox> boxes;
         res->bounding_boxes = boxes;

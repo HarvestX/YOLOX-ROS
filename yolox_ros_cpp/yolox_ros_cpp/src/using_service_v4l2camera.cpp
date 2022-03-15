@@ -17,6 +17,7 @@ namespace using_service_v4l2camera
                 return ;
             }
             RCLCPP_INFO(this->get_logger(), "waiting for service...");
+            break;
         }
         
 

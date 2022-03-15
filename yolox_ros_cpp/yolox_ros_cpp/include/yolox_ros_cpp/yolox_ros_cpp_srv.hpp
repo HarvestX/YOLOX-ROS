@@ -17,14 +17,14 @@
 #include "yolo_msgs/msg/bounding_box.hpp"
 #include "yolo_msgs/msg/bounding_boxes.hpp"
 
-#include "yolox_ros_cpp/bboxes_from_yaml.hpp"
-
 #include "yolox_cpp/yolox.hpp"
 #include "yolox_cpp/utils.hpp"
 
+#include "yolox_ros_cpp/bboxes_from_yaml.hpp"
+
 namespace yolox_ros_cpp_srv{
 
-    class YoloXSrv : public rclcpp::Node
+    class YoloXSrv : public rclcpp::Node, public bboxes_from_yaml
     {
     public:
         YoloXSrv(const rclcpp::NodeOptions& options);
@@ -60,11 +60,12 @@ namespace yolox_ros_cpp_srv{
         // yolo_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
         std::vector<yolo_msgs::msg::BoundingBox> objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
 
-        void draw_objects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects);
 
         std::string WINDOW_NAME_ = "YOLOX";
         bool imshow_ = true;
-        bboxes_from_yaml bboxes;
+        
+        // bboxes_from_yaml bboxes;
+        void draw_objects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects);
         std::string yaml_file_name_;
     };
 }

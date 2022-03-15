@@ -10,15 +10,16 @@
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.hpp>
 
-#include "bboxes_ex_msgs/msg/bounding_box.hpp"
-#include "bboxes_ex_msgs/msg/bounding_boxes.hpp"
+#include "yolo_msgs/msg/bounding_box.hpp"
+#include "yolo_msgs/msg/bounding_boxes.hpp"
 
 #include "yolox_cpp/yolox.hpp"
 #include "yolox_cpp/utils.hpp"
 
+#include "yolox_ros_cpp/bboxes_from_yaml.hpp"
 namespace yolox_ros_cpp{
 
-    class YoloXNode : public rclcpp::Node
+    class YoloXNode : public rclcpp::Node, public bboxes_from_yaml
     {
     public:
         YoloXNode(const rclcpp::NodeOptions& options);
@@ -42,13 +43,17 @@ namespace yolox_ros_cpp{
         image_transport::Subscriber sub_image_;
         void colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr& ptr);
 
-        rclcpp::Publisher<bboxes_ex_msgs::msg::BoundingBoxes>::SharedPtr pub_bboxes_;
+        rclcpp::Publisher<yolo_msgs::msg::BoundingBoxes>::SharedPtr pub_bboxes_;
         image_transport::Publisher pub_image_;
 
-        bboxes_ex_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+        yolo_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
 
         std::string WINDOW_NAME_ = "YOLOX";
         bool imshow_ = true;
+
+        // bboxes_from_yaml bboxes;
+        void draw_objects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects);
+        std::string yaml_file_name_;
     };
 }
 #endif

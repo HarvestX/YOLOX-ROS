@@ -154,7 +154,8 @@ namespace yolox_ros_cpp{
             yolo_msgs::msg::BoundingBox box;
             // box.probability = obj.prob;
             box.confidence = obj.prob;
-            box.class_id = yolox_cpp::COCO_CLASSES[obj.label];
+            // box.class_id = yolox_cpp::COCO_CLASSES[obj.label];
+            box.class_id = this->coco_data[obj.label].name;
             box.xmin = obj.rect.x;
             box.ymin = obj.rect.y;
             box.xmax = (obj.rect.x + obj.rect.width);

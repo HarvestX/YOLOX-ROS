@@ -168,7 +168,7 @@ namespace yolox_ros_cpp_srv
         if (this->yaml_file_name_.size() > 0)
         {
             this->draw_objects(frame, objects);
-            yolox_cpp::utils::draw_objects(frame, objects);
+            // yolox_cpp::utils::draw_objects(frame, objects);
         }
         else
         {
@@ -192,7 +192,7 @@ namespace yolox_ros_cpp_srv
         {
             yolo_msgs::msg::BoundingBox box;
             box.confidence = obj.prob;
-            box.class_id = bboxes.coco_data[obj.label].name;
+            box.class_id = this->coco_data[obj.label].name;
             box.xmin = obj.rect.x;
             box.ymin = obj.rect.y;
             box.xmax = (obj.rect.x + obj.rect.width);
@@ -220,9 +220,9 @@ namespace yolox_ros_cpp_srv
             // fprintf(stderr, "%d = %.5f at %.2f %.2f %.2f x %.2f\n", obj.label, obj.prob,
             //         obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
 
-            cv::Scalar color = cv::Scalar(bboxes.coco_data[obj.label].rgb.b,
-                                            bboxes.coco_data[obj.label].rgb.g,
-                                            bboxes.coco_data[obj.label].rgb.r);
+            cv::Scalar color = cv::Scalar(this->coco_data[obj.label].rgb.b,
+                                            this->coco_data[obj.label].rgb.g,
+                                            this->coco_data[obj.label].rgb.r);
             float c_mean = cv::mean(color)[0];
             cv::Scalar txt_color;
             if (c_mean > 0.5)
@@ -237,7 +237,7 @@ namespace yolox_ros_cpp_srv
             cv::rectangle(bgr, obj.rect, color * 255, 2);
 
             char text[256];
-            sprintf(text, "%s %.1f%%", bboxes.coco_data[obj.label].name.c_str(), obj.prob * 100);
+            sprintf(text, "%s %.1f%%", this->coco_data[obj.label].name.c_str(), obj.prob * 100);
 
             int baseLine = 0;
             cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseLine);

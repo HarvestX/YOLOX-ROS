@@ -15,7 +15,7 @@
   <depend>cv_bridge</depend>
   <depend>image_transport</depend>
   <depend>sensor_msgs</depend>
-  <depend>bboxes_ex_msgs</depend>
+  <!-- <depend>bboxes_ex_msgs</depend> -->
   <depend>yolo_msgs</depend>
   <depend>yolox_cpp</depend>
 

@@ -12,18 +12,20 @@
 
 #include "yolo_msgs/msg/bounding_box.hpp"
 #include "yolo_msgs/msg/bounding_boxes.hpp"
+#include "yolo_msgs/srv/detect_object.hpp"
 
 #include "yolox_cpp/yolox.hpp"
 #include "yolox_cpp/utils.hpp"
 
 #include "yolox_ros_cpp/bboxes_from_yaml.hpp"
-namespace yolox_ros_cpp{
+namespace yolox_ros_cpp
+{
 
     class YoloXNode : public rclcpp::Node, public bboxes_from_yaml
     {
     public:
-        YoloXNode(const rclcpp::NodeOptions& options);
-        YoloXNode(const std::string &node_name, const rclcpp::NodeOptions& options);
+        YoloXNode(const rclcpp::NodeOptions &options);
+        YoloXNode(const std::string &node_name, const rclcpp::NodeOptions &options);
 
     private:
         void initializeParameter();
@@ -41,12 +43,17 @@ namespace yolox_ros_cpp{
         std::string publish_boundingbox_topic_name_;
 
         image_transport::Subscriber sub_image_;
-        void colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr& ptr);
+        void colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr &ptr);
+        void colorImageSrvCallback(const std::shared_ptr<rmw_request_id_t> request_header,
+                                   const std::shared_ptr<yolo_msgs::srv::DetectObject::Request> req,
+                                   std::shared_ptr<yolo_msgs::srv::DetectObject::Response> res);
 
         rclcpp::Publisher<yolo_msgs::msg::BoundingBoxes>::SharedPtr pub_bboxes_;
         image_transport::Publisher pub_image_;
+        rclcpp::Service<yolo_msgs::srv::DetectObject>::SharedPtr srv_detect_object_;
 
         yolo_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+        std::vector<yolo_msgs::msg::BoundingBox> objects_to_bbox_vec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
 
         std::string WINDOW_NAME_ = "YOLOX";
         bool imshow_ = true;

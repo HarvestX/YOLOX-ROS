@@ -65,7 +65,7 @@ namespace yolox_ros_cpp_srv
         // this->pub_image_ = image_transport::create_publisher(this, this->publish_image_topic_name_);
     }
 
-    void YoloXSrv::initializeParameter()
+    void YoloXSrv::initializeParameter() initializeParameter()
     {
         this->declare_parameter<bool>("imshow_isshow", true);
         this->declare_parameter<std::string>("model_path", "/root/ros2_ws/src/YOLOX-ROS/weights/tensorrt/YOLOX_outputs/nano/model_trt.engine");
@@ -92,6 +92,7 @@ namespace yolox_ros_cpp_srv
         this->get_parameter("src_image_topic_name", this->src_image_topic_name_);
         this->get_parameter("publish_image_topic_name", this->publish_image_topic_name_);
         this->get_parameter("publish_boundingbox_topic_name", this->publish_boundingbox_topic_name_);
+
         this->get_parameter("class_yaml", this->yaml_file_name_);
 
         RCLCPP_INFO(this->get_logger(), "Set parameter imshow_isshow: %i", this->imshow_);
@@ -104,8 +105,9 @@ namespace yolox_ros_cpp_srv
         RCLCPP_INFO(this->get_logger(), "Set parameter model_type: '%s'", this->model_type_.c_str());
         RCLCPP_INFO(this->get_logger(), "Set parameter src_image_topic_name: '%s'", this->src_image_topic_name_.c_str());
         RCLCPP_INFO(this->get_logger(), "Set parameter publish_image_topic_name: '%s'", this->publish_image_topic_name_.c_str());
+
         RCLCPP_INFO(this->get_logger(), "Set parameter publish_boundingbox_topic_name: '%s'", this->publish_boundingbox_topic_name_.c_str());
-        
+
         if (this->yaml_file_name_.size() > 0)
         {
             RCLCPP_INFO(this->get_logger(), "Set parameter class_yaml file path: '%s'", this->yaml_file_name_.c_str());
@@ -117,7 +119,6 @@ namespace yolox_ros_cpp_srv
             {
                 RCLCPP_ERROR(this->get_logger(), "Load class_yaml file failed");
             }
-            
         }
     }
     // void YoloXSrv::colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr& ptr){
@@ -154,7 +155,6 @@ namespace yolox_ros_cpp_srv
                                          std::shared_ptr<yolo_msgs::srv::DetectObject::Response> res)
     {
         RCLCPP_INFO(this->get_logger(), "colorImageSrvCallback");
-        int step = 0;
 
         (void)request_header;
 
@@ -168,25 +168,31 @@ namespace yolox_ros_cpp_srv
         if (this->yaml_file_name_.size() > 0)
         {
             this->draw_objects(frame, objects);
-            // yolox_cpp::utils::draw_objects(frame, objects);
         }
         else
         {
             yolox_cpp::utils::draw_objects(frame, objects);
         }
-        
-        std::vector<yolo_msgs::msg::BoundingBox> boxes = objects_to_bboxes(frame, objects, img->header);
-        // std::vector<yolo_msgs::msg::BoundingBox> boxes;
-        res->bounding_boxes = boxes;
+
+        auto boxes = objects_to_bboxes(frame, objects, img->header);
+
+        std::vector<yolo_msgs::msg::BoundingBox> new_bboxes;
+        for (unsigned int idx = 0; idx < sizeof(boxes) / sizeof(boxes.bounding_boxes[0]); idx++)
+        {
+            new_bboxes.push_back(boxes.bounding_boxes[idx]);
+        }
+        res->bounding_boxes = new_bboxes;
 
         auto end = std::chrono::system_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - now);
         RCLCPP_INFO(this->get_logger(), "fps: %f", 1000.0f / elapsed.count());
     }
 
-    std::vector<yolo_msgs::msg::BoundingBox> YoloXSrv::objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header)
+    yolo_msgs::msg::BoundingBoxes YoloXSrv::objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header)
     {
-        std::vector<yolo_msgs::msg::BoundingBox> boxes;
+        yolo_msgs::msg::BoundingBoxes boxes;
+        (void)frame;
+        (void)header;
         // boxes.header = header;
         for (auto obj : objects)
         {
@@ -203,7 +209,7 @@ namespace yolox_ros_cpp_srv
             // box.id = 0;
             // depth
             // box.center_dist = 0;
-            boxes.push_back(box);
+            boxes.bounding_boxes.emplace_back(box);
         }
         return boxes;
     }
@@ -221,8 +227,8 @@ namespace yolox_ros_cpp_srv
             //         obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
 
             cv::Scalar color = cv::Scalar(this->coco_data[obj.label].rgb.b,
-                                            this->coco_data[obj.label].rgb.g,
-                                            this->coco_data[obj.label].rgb.r);
+                                          this->coco_data[obj.label].rgb.g,
+                                          this->coco_data[obj.label].rgb.r);
             float c_mean = cv::mean(color)[0];
             cv::Scalar txt_color;
             if (c_mean > 0.5)

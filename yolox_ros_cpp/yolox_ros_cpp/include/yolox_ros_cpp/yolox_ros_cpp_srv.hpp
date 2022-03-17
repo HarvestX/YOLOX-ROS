@@ -58,7 +58,7 @@ namespace yolox_ros_cpp_srv{
         rclcpp::Service<yolo_msgs::srv::DetectObject>::SharedPtr srv_detect_object_;
 
         // yolo_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
-        std::vector<yolo_msgs::msg::BoundingBox> objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+        yolo_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
 
 
         std::string WINDOW_NAME_ = "YOLOX";

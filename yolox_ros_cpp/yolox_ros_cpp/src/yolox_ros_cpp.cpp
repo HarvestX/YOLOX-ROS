@@ -1,60 +1,71 @@
 #include "yolox_ros_cpp/yolox_ros_cpp.hpp"
 
-namespace yolox_ros_cpp{
+using namespace std::chrono_literals;
+using namespace std::placeholders;
 
-    YoloXNode::YoloXNode(const rclcpp::NodeOptions& options)
-    : YoloXNode::YoloXNode("", options)
-    {}
+namespace yolox_ros_cpp
+{
 
-    YoloXNode::YoloXNode(const std::string &node_name, const rclcpp::NodeOptions& options)
-    : rclcpp::Node("yolox_ros_cpp", node_name, options){
-        
+    YoloXNode::YoloXNode(const rclcpp::NodeOptions &options)
+        : YoloXNode::YoloXNode("", options)
+    {
+    }
+
+    YoloXNode::YoloXNode(const std::string &node_name, const rclcpp::NodeOptions &options)
+        : rclcpp::Node("yolox_ros_cpp", node_name, options)
+    {
+
         RCLCPP_INFO(this->get_logger(), "initialize");
         this->initializeParameter();
 
-        if(this->imshow_){
-            char window_name[50];
-            sprintf(window_name, "%s %s %s", this->WINDOW_NAME_.c_str(), "_", this->get_name());
-            this->WINDOW_NAME_ = window_name;            
+        // if (this->imshow_)
+        // {
+        //     char window_name[50];
+        //     sprintf(window_name, "%s %s %s", this->WINDOW_NAME_.c_str(), "_", this->get_name());
+        //     this->WINDOW_NAME_ = window_name;
 
-            cv::namedWindow(this->WINDOW_NAME_, cv::WINDOW_AUTOSIZE);
+        //     cv::namedWindow(this->WINDOW_NAME_, cv::WINDOW_AUTOSIZE);
+        // }
+
+        if (this->model_type_ == "tensorrt")
+        {
+#ifdef ENABLE_TENSORRT
+            RCLCPP_INFO(this->get_logger(), "Model Type is TensorRT");
+            this->yolox_ = std::make_unique<yolox_cpp::YoloXTensorRT>(this->model_path_, std::stoi(this->device_),
+                                                                      this->nms_th_, this->conf_th_,
+                                                                      this->image_width_, this->image_height_);
+#else
+            RCLCPP_ERROR(this->get_logger(), "yolox_cpp is not built with TensorRT");
+            rclcpp::shutdown();
+#endif
         }
-        
-        if(this->model_type_ == "tensorrt"){
-            #ifdef ENABLE_TENSORRT
-                RCLCPP_INFO(this->get_logger(), "Model Type is TensorRT");
-                this->yolox_ = std::make_unique<yolox_cpp::YoloXTensorRT>(this->model_path_, std::stoi(this->device_),
-                                                                          this->nms_th_, this->conf_th_, 
-                                                                          this->image_width_, this->image_height_);
-            #else
-                RCLCPP_ERROR(this->get_logger(), "yolox_cpp is not built with TensorRT");
-                rclcpp::shutdown();
-            #endif
-        }else if(this->model_type_ == "openvino"){
-            #ifdef ENABLE_OPENVINO
-                RCLCPP_INFO(this->get_logger(), "Model Type is OpenVINO");
-                this->yolox_ = std::make_unique<yolox_cpp::YoloXOpenVINO>(this->model_path_, this->device_,
-                                                                          this->nms_th_, this->conf_th_,
-                                                                          this->image_width_, this->image_height_);
-            #else
-                RCLCPP_ERROR(this->get_logger(), "yolox_cpp is not built with OpenVINO");
-                rclcpp::shutdown();
-            #endif
+        else if (this->model_type_ == "openvino")
+        {
+#ifdef ENABLE_OPENVINO
+            RCLCPP_INFO(this->get_logger(), "Model Type is OpenVINO");
+            this->yolox_ = std::make_unique<yolox_cpp::YoloXOpenVINO>(this->model_path_, this->device_,
+                                                                      this->nms_th_, this->conf_th_,
+                                                                      this->image_width_, this->image_height_);
+#else
+            RCLCPP_ERROR(this->get_logger(), "yolox_cpp is not built with OpenVINO");
+            rclcpp::shutdown();
+#endif
         }
 
         this->sub_image_ = image_transport::create_subscription(
-            this, this->src_image_topic_name_, 
-            std::bind(&YoloXNode::colorImageCallback, this, std::placeholders::_1), 
+            this, this->src_image_topic_name_,
+            std::bind(&YoloXNode::colorImageCallback, this, std::placeholders::_1),
             "raw");
         this->pub_bboxes_ = this->create_publisher<yolo_msgs::msg::BoundingBoxes>(
             this->publish_boundingbox_topic_name_,
-            10
-        );
+            10);
         this->pub_image_ = image_transport::create_publisher(this, this->publish_image_topic_name_);
 
+        this->srv_detect_object_ = this->create_service<yolo_msgs::srv::DetectObject>("detect_object", std::bind(&YoloXNode::colorImageSrvCallback, this, _1, _2, _3));
     }
 
-    void YoloXNode::initializeParameter(){
+    void YoloXNode::initializeParameter()
+    {
         this->declare_parameter<bool>("imshow_isshow", true);
         this->declare_parameter<std::string>("model_path", "/root/ros2_ws/src/YOLOX-ROS/weights/tensorrt/YOLOX_outputs/nano/model_trt.engine");
         this->declare_parameter<float>("conf", 0.3f);
@@ -64,8 +75,8 @@ namespace yolox_ros_cpp{
         this->declare_parameter<int>("image_size/height", 416);
         this->declare_parameter<std::string>("model_type", "tensorrt");
         this->declare_parameter<std::string>("src_image_topic_name", "image_raw");
-        this->declare_parameter<std::string>("publish_image_topic_name", "yolox/image_raw");        
-        this->declare_parameter<std::string>("publish_boundingbox_topic_name", "yolox/bounding_boxes");        
+        this->declare_parameter<std::string>("publish_image_topic_name", "yolox/image_raw");
+        this->declare_parameter<std::string>("publish_boundingbox_topic_name", "yolox/bounding_boxes");
 
         this->declare_parameter<std::string>("class_yaml", "");
 
@@ -107,10 +118,10 @@ namespace yolox_ros_cpp{
             {
                 RCLCPP_ERROR(this->get_logger(), "Load class_yaml file failed");
             }
-            
         }
     }
-    void YoloXNode::colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr& ptr){
+    void YoloXNode::colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr &ptr)
+    {
         auto img = cv_bridge::toCvCopy(ptr, "bgr8");
         cv::Mat frame = img->image;
 
@@ -127,11 +138,12 @@ namespace yolox_ros_cpp{
             yolox_cpp::utils::draw_objects(frame, objects);
         }
 
-        // yolox_cpp::utils::draw_objects(frame, objects);
-        if(this->imshow_){
+        if (this->imshow_)
+        {
             cv::imshow(this->WINDOW_NAME_, frame);
             auto key = cv::waitKey(1);
-            if(key == 27){
+            if (key == 27)
+            {
                 rclcpp::shutdown();
             }
         }
@@ -145,12 +157,38 @@ namespace yolox_ros_cpp{
 
         auto end = std::chrono::system_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - now);
-        RCLCPP_INFO(this->get_logger(), "fps: %f", 1000.0f / elapsed.count());
+        RCLCPP_INFO(this->get_logger(), "sub-fps: %f", 1000.0f / elapsed.count());
     }
-    yolo_msgs::msg::BoundingBoxes YoloXNode::objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header){
+
+    void YoloXNode::colorImageSrvCallback(const std::shared_ptr<rmw_request_id_t> request_header,
+                                         const std::shared_ptr<yolo_msgs::srv::DetectObject::Request> req,
+                                         std::shared_ptr<yolo_msgs::srv::DetectObject::Response> res)
+    {
+        (void)request_header;
+
+        auto img = cv_bridge::toCvCopy(req->image, "bgr8");
+        cv::Mat frame = img->image;
+
+        // fps
+        auto now = std::chrono::system_clock::now();
+        auto objects = this->yolox_->inference(frame);
+
+        std::vector<yolo_msgs::msg::BoundingBox> boxes = objects_to_bbox_vec(frame, objects, img->header);
+        res->bounding_boxes = boxes;
+
+        auto end = std::chrono::system_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - now);
+        RCLCPP_INFO(this->get_logger(), "srv-fps: %f", 1000.0f / elapsed.count());
+    }
+
+    yolo_msgs::msg::BoundingBoxes YoloXNode::objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header)
+    {
         yolo_msgs::msg::BoundingBoxes boxes;
+        (void)frame;
+        (void)header;
         // boxes.header = header;
-        for(auto obj: objects){
+        for (auto obj : objects)
+        {
             yolo_msgs::msg::BoundingBox box;
             // box.probability = obj.prob;
             box.confidence = obj.prob;
@@ -170,6 +208,34 @@ namespace yolox_ros_cpp{
         }
         return boxes;
     }
+    
+    std::vector<yolo_msgs::msg::BoundingBox> YoloXNode::objects_to_bbox_vec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header)
+    {
+        std::vector<yolo_msgs::msg::BoundingBox> boxes;
+        (void)frame;
+        (void)header;
+        // boxes.header = header;
+        for (auto obj : objects)
+        {
+            yolo_msgs::msg::BoundingBox box;
+            // box.probability = obj.prob;
+            box.confidence = obj.prob;
+            // box.class_id = yolox_cpp::COCO_CLASSES[obj.label];
+            box.class_id = this->coco_data[obj.label].name;
+            box.xmin = obj.rect.x;
+            box.ymin = obj.rect.y;
+            box.xmax = (obj.rect.x + obj.rect.width);
+            box.ymax = (obj.rect.y + obj.rect.height);
+            // box.img_width = frame.cols;
+            // box.img_height = frame.rows;
+            // tracking id
+            // box.id = 0;
+            // depth
+            // box.center_dist = 0;
+            boxes.emplace_back(box);
+        }
+        return boxes;
+    }
 
     void YoloXNode::draw_objects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects)
     {
@@ -184,8 +250,8 @@ namespace yolox_ros_cpp{
             //         obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
 
             cv::Scalar color = cv::Scalar(this->coco_data[obj.label].rgb.b,
-                                            this->coco_data[obj.label].rgb.g,
-                                            this->coco_data[obj.label].rgb.r);
+                                          this->coco_data[obj.label].rgb.g,
+                                          this->coco_data[obj.label].rgb.r);
             float c_mean = cv::mean(color)[0];
             cv::Scalar txt_color;
             if (c_mean > 0.5)
@@ -225,4 +291,3 @@ namespace yolox_ros_cpp{
 }
 
 RCLCPP_COMPONENTS_REGISTER_NODE(yolox_ros_cpp::YoloXNode)
-

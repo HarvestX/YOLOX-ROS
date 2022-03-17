@@ -34,6 +34,7 @@ namespace using_service_v4l2camera
         std::vector<yolo_msgs::msg::BoundingBox> boundingboxes;
         for (auto &box : response->bounding_boxes)
         {
+            RCLCPP_INFO(this->get_logger(), "box.label: %s", box.class_id.c_str());
             yolo_msgs::msg::BoundingBox boundingbox;
             boundingbox.xmin = box.xmin;
             boundingbox.ymin = box.ymin;

@@ -21,7 +21,8 @@ def generate_launch_description():
                         plugin='v4l2_camera::V4L2Camera',
                         name='v4l2_camera',
                         parameters=[{
-                            "image_size": [640,480]
+                            "image_size": [640,480],
+                            "video_device": "/dev/video0",
                         }]),
                     ComposableNode(
                         package='yolox_ros_cpp',
@@ -31,8 +32,7 @@ def generate_launch_description():
                         )
                 ],
                 output='screen',
-                # log info
-                arguments=['--ros-args', '--log-level', 'INFO']
+                # arguments=['--ros-args', '--log-level', 'INFO']
                 
         )
 

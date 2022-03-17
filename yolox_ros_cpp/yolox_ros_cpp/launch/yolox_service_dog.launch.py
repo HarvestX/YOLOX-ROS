@@ -12,27 +12,28 @@ def generate_launch_description():
     yolox_param_yaml = os.path.join(yolox_ros_share_dir, "param", "tiny_openvino.yaml")
     # yolox_param_yaml = os.path.join(yolox_ros_share_dir, "param", "tiny_trtexec.yaml")
 
+    # dog is not exist, download
+    url = "https://raw.githubusercontent.com/pjreddie/darknet/master/data/dog.jpg"
+    dog_jpg = os.path.join(yolox_ros_share_dir, "./", "dog.jpg")
+    if not os.path.exists(dog_jpg):
+        os.system("wget {} -O {}".format(url, dog_jpg))
+    
+    image_pub = launch_ros.actions.Node(
+        package='image_publisher',
+        executable='image_publisher_node',
+        name='image_publisher',
+        arguments=[dog_jpg],
+        remappings=[
+            ('image_raw', 'image_srv'),
+        ],
+    )
+
     container = ComposableNodeContainer(
         name='yolox_container',
         namespace='',
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
-
-            # v4l2_camera component
-            ComposableNode(
-                package='v4l2_camera',
-                plugin='v4l2_camera::V4L2Camera',
-                name='v4l2_camera',
-                parameters=[{
-                            "image_size": [640, 480],
-                            "video_device": "/dev/video0",
-                            }],
-                remappings=[
-                    ('image_raw', 'image_srv'),
-                ],
-            ),
-
             # image subscriber component
             ComposableNode(
                 package='yolox_ros_cpp',
@@ -52,6 +53,7 @@ def generate_launch_description():
             )
         ],
         output='screen',
+        arguments= [dog_jpg],
     )
 
     rqt_graph = launch_ros.actions.Node(
@@ -60,5 +62,6 @@ def generate_launch_description():
 
     return launch.LaunchDescription([
         container,
+        image_pub,
         # rqt_graph,
     ])

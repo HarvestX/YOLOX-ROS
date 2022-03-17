@@ -11,10 +11,10 @@ publish_image_topic_name: yolox/image_raw
 publish_boundingbox_topic_name: yolox/bounding_boxes
 class_yaml: ./install/yolox_ros_cpp/share/yolox_ros_cpp/param/tiny_openvino.yaml
 class_info: # class_name: bounding_box_color [R, G, B]
-  person: [0.494, 0.184, 0.556]
-  bicycle: [0.000, 0.447, 0.741]
+  person: [0.000, 0.447, 0.741]
+  bicycle: [0.850, 0.325, 0.098]
   car: [0.929, 0.694, 0.125]
-  motorcycle: [0.850, 0.325, 0.098]
+  motorcycle: [0.494, 0.184, 0.556]
   airplane: [0.466, 0.674, 0.188]
   bus: [0.301, 0.745, 0.933]
   train: [0.635, 0.078, 0.184]

@@ -32,8 +32,6 @@ def generate_launch_description():
                         )
                 ],
                 output='screen',
-                # arguments=['--ros-args', '--log-level', 'INFO']
-                
         )
 
     rqt_graph = launch_ros.actions.Node(

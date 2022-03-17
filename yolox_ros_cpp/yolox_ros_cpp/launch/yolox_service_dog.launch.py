@@ -39,6 +39,10 @@ def generate_launch_description():
                 package='yolox_ros_cpp',
                 plugin='using_service_v4l2camera::using_service',
                 name='sub_v4l2camera',
+                parameters=[{
+                    "class_yaml": yolox_param_yaml,
+                    "imshow_is_show": False,
+                }],
                 remappings=[
                     ('image_raw', 'image_srv'),
                 ],

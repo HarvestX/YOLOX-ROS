@@ -9,7 +9,8 @@ from launch_ros.descriptions import ComposableNode
 def generate_launch_description():
     yolox_ros_share_dir = get_package_share_directory('yolox_ros_cpp')
 
-    yolox_param_yaml = os.path.join(yolox_ros_share_dir, "param", "tiny_openvino.yaml")
+    yolox_param_yaml = os.path.join(
+        yolox_ros_share_dir, "param", "tiny_openvino.yaml")
     # yolox_param_yaml = os.path.join(yolox_ros_share_dir, "param", "tiny_trtexec.yaml")
 
     container = ComposableNodeContainer(
@@ -25,9 +26,9 @@ def generate_launch_description():
                 plugin='v4l2_camera::V4L2Camera',
                 name='v4l2_camera',
                 parameters=[{
-                            "image_size": [640, 480],
-                            "video_device": "/dev/video0",
-                            }],
+                    "image_size": [640, 480],
+                    "video_device": "/dev/video0",
+                }],
                 remappings=[
                     ('image_raw', 'image_srv'),
                 ],
@@ -38,6 +39,10 @@ def generate_launch_description():
                 package='yolox_ros_cpp',
                 plugin='using_service_v4l2camera::using_service',
                 name='sub_v4l2camera',
+                parameters=[{
+                    "class_yaml": yolox_param_yaml,
+                    "imshow_is_show": True,
+                }],
                 remappings=[
                     ('image_raw', 'image_srv'),
                 ],

@@ -117,6 +117,7 @@ namespace yolox_ros_cpp
             else
             {
                 RCLCPP_ERROR(this->get_logger(), "Load class_yaml file failed");
+                exit(1);
             }
         }
     }

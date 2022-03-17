@@ -86,6 +86,7 @@ target_include_directories(using_service_v4l2camera PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
+target_link_libraries(using_service_v4l2camera -lyaml-cpp)
 
 ament_target_dependencies(using_service_v4l2camera
   rclcpp

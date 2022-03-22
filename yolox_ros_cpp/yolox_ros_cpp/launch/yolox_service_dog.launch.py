@@ -41,7 +41,7 @@ def generate_launch_description():
                 name='sub_v4l2camera',
                 parameters=[{
                     "class_yaml": yolox_param_yaml,
-                    "imshow_is_show": False,
+                    "imshow_is_show": True,
                 }],
                 remappings=[
                     ('image_raw', 'image_srv'),

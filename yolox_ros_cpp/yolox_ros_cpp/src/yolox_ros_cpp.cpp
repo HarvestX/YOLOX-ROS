@@ -55,7 +55,7 @@ namespace yolox_ros_cpp
         this->srv_detect_object_ = this->create_service<yolo_msgs::srv::DetectObject>("detect_object", std::bind(&YoloXNode::colorImageSrvCallback, this, _1, _2, _3));
     }
 
-    std::string YoloXNode::getModelPath(std::string &model_path)
+    std::string YoloXNode::getModelPath(const std::string &model_path)
     {
         // model_path , class_yaml
         // path: ./ : relative path

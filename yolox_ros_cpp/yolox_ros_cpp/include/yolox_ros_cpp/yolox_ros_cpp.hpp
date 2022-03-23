@@ -56,7 +56,7 @@ namespace yolox_ros_cpp
         yolo_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
         std::vector<yolo_msgs::msg::BoundingBox> objects_to_bbox_vec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
 
-        std::string getModelPath(std::string &model_path);
+        std::string getModelPath(const std::string &model_path);
 
         std::string WINDOW_NAME_ = "YOLOX";
         bool imshow_ = true;

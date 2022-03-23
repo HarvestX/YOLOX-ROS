@@ -1,4 +1,4 @@
-model_path: ./install/yolox_ros_cpp/share/yolox_ros_cpp/weights/openvino/yolox_tiny.xml
+model_path: yolox_ros_cpp/weights/openvino/yolox_tiny.xml
 model_type: openvino
 device: CPU
 image_size/height: 416
@@ -9,7 +9,7 @@ imshow_isshow: true
 src_image_topic_name: image_raw
 publish_image_topic_name: yolox/image_raw
 publish_boundingbox_topic_name: yolox/bounding_boxes
-class_yaml: ./install/yolox_ros_cpp/share/yolox_ros_cpp/param/tiny_openvino.yaml
+class_yaml: yolox_ros_cpp/param/tiny_openvino.yaml
 class_info: # class_name: bounding_box_color [R, G, B]
   person: [0.000, 0.447, 0.741]
   bicycle: [0.850, 0.325, 0.098]

@@ -18,15 +18,6 @@ namespace yolox_ros_cpp
         RCLCPP_INFO(this->get_logger(), "initialize");
         this->initializeParameter();
 
-        // if (this->imshow_)
-        // {
-        //     char window_name[50];
-        //     sprintf(window_name, "%s %s %s", this->WINDOW_NAME_.c_str(), "_", this->get_name());
-        //     this->WINDOW_NAME_ = window_name;
-
-        //     cv::namedWindow(this->WINDOW_NAME_, cv::WINDOW_AUTOSIZE);
-        // }
-
         if (this->model_type_ == "tensorrt")
         {
 #ifdef ENABLE_TENSORRT
@@ -64,6 +55,50 @@ namespace yolox_ros_cpp
         this->srv_detect_object_ = this->create_service<yolo_msgs::srv::DetectObject>("detect_object", std::bind(&YoloXNode::colorImageSrvCallback, this, _1, _2, _3));
     }
 
+    std::string YoloXNode::getModelPath(std::string &model_path)
+    {
+        // model_path , class_yaml
+        // path: ./ : relative path
+        // path: ~/ or /home : absolute path
+        // path: yolox_ros_cpp : package path
+        std::string return_model_path;
+        if (model_path.find("~") == 0)
+        {
+            RCLCPP_INFO(this->get_logger(), "Model path is absolute path (~)");
+            // remove ~
+            return_model_path = model_path.substr(1);
+            return_model_path = std::string(getenv("HOME")) + return_model_path;
+        }
+        else if (model_path.find("/") == 0)
+        {
+            RCLCPP_INFO(this->get_logger(), "Model path is absolute path (/)");
+            // do nothing
+        }
+        else if (model_path.find(".") == 0)
+        {
+            RCLCPP_INFO(this->get_logger(), "Model path is relative path (.)");
+            char cwd[1024];
+            getcwd(cwd, sizeof(cwd));
+            // remove .
+            return_model_path = model_path.substr(1);
+            return_model_path = std::string(cwd) + return_model_path;
+        }
+        else if (model_path.find("yolox_ros_cpp") == 0)
+        {
+            RCLCPP_INFO(this->get_logger(), "Model path is package path (yolox_ros_cpp)");
+            // get ros package path
+            std::string package_share_directory = ament_index_cpp::get_package_share_directory("yolox_ros_cpp");
+            return_model_path = model_path.substr(std::string("yolox_ros_cpp").size());
+            return_model_path = package_share_directory + return_model_path;
+        }
+        else
+        {
+            RCLCPP_ERROR(this->get_logger(), "Model path is not valid");
+            return "";
+        }
+        return return_model_path;
+    }
+
     void YoloXNode::initializeParameter()
     {
         this->declare_parameter<bool>("imshow_isshow", true);
@@ -95,7 +130,7 @@ namespace yolox_ros_cpp
         this->get_parameter("class_yaml", this->yaml_file_name_);
 
         RCLCPP_INFO(this->get_logger(), "Set parameter imshow_isshow: %i", this->imshow_);
-        RCLCPP_INFO(this->get_logger(), "Set parameter model_path: '%s'", this->model_path_.c_str());
+        // RCLCPP_INFO(this->get_logger(), "Set parameter model_path: '%s'", this->model_path_.c_str());
         RCLCPP_INFO(this->get_logger(), "Set parameter conf: %f", this->conf_th_);
         RCLCPP_INFO(this->get_logger(), "Set parameter nms: %f", this->nms_th_);
         RCLCPP_INFO(this->get_logger(), "Set parameter device: %s", this->device_.c_str());
@@ -106,6 +141,19 @@ namespace yolox_ros_cpp
         RCLCPP_INFO(this->get_logger(), "Set parameter publish_image_topic_name: '%s'", this->publish_image_topic_name_.c_str());
 
         RCLCPP_INFO(this->get_logger(), "Set parameter publish_boundingbox_topic_name: '%s'", this->publish_boundingbox_topic_name_.c_str());
+
+        this->model_path_ = this->getModelPath(this->model_path_);
+        this->yaml_file_name_ = this->getModelPath(this->yaml_file_name_);
+
+        // print path
+        RCLCPP_INFO(this->get_logger(), "Set parameter model_path: '%s'", this->model_path_.c_str());
+        RCLCPP_INFO(this->get_logger(), "Set parameter class_yaml: '%s'", this->yaml_file_name_.c_str());
+
+        if (this->model_path_.empty() || this->yaml_file_name_.empty())
+        {
+            RCLCPP_ERROR(this->get_logger(), "Model path or class yaml file is empty");
+            exit(1);
+        }
 
         if (this->yaml_file_name_.size() > 0)
         {

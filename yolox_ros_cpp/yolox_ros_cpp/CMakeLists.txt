@@ -23,9 +23,9 @@ find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
-# find_package(bboxes_ex_msgs QUIET)
 find_package(yolo_msgs REQUIRED)
 find_package(yolox_cpp)
+find_package(boost_filesystem REQUIRED)
 
 find_package(yaml-cpp REQUIRED)
 

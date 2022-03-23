@@ -1,14 +1,15 @@
-model_path: ./install/yolox_ros_cpp/share/yolox_ros_cpp/weights/tensorrt/YOLOX_outputs/yolox_tiny/model_trt.engine
+model_path: yolox_ros_cpp/weights/tensorrt/yolox_tiny/model_trt.engine
 model_type: "tensorrt"
 device: "0"
 image_size/height: 416
 image_size/width: 416
-imshow_isshow: true
 nms: 0.45
 conf: 0.30
+imshow_isshow: true
 src_image_topic_name: image_raw
 publish_image_topic_name: yolox/image_raw
 publish_boundingbox_topic_name: yolox/bounding_boxes
+class_yaml: yolox_ros_cpp/param/tiny_trtexec.yaml # reopen yaml to load class_info
 class_info: # class_name: bounding_box_color [R, G, B]
   person: [0.000, 0.447, 0.741]
   bicycle: [0.850, 0.325, 0.098]

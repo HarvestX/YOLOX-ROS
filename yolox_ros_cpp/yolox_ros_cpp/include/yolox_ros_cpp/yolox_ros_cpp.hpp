@@ -2,9 +2,11 @@
 #define _YOLOX_ROS_CPP_YOLOX_ROS_CPP_HPP
 #include <math.h>
 #include <chrono>
+#include <unistd.h>
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.hpp>
@@ -53,6 +55,8 @@ namespace yolox_ros_cpp
 
         yolo_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
         std::vector<yolo_msgs::msg::BoundingBox> objects_to_bbox_vec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+
+        std::string getModelPath(const std::string &model_path);
 
         std::string WINDOW_NAME_ = "YOLOX";
         bool imshow_ = true;

@@ -9,7 +9,9 @@ if [ -z "$1" ]; then
 fi
 MODEL=$1
 MO=/opt/intel/openvino_2021/deployment_tools/model_optimizer/
-ROS2_WS=~/ros2_ws
+
+THIS_FILE=$BASH_SOURCE
+THIS_PROJECT_ROOT=$(realpath $(dirname $(realpath $THIS_FILE))/../../)
 
 rm -rf ~/openvino_download
 mkdir ~/openvino_download
@@ -26,6 +28,4 @@ echo "=========================================="
 echo "Model Optimizer finished"
 echo "=========================================="
 
-cp -r ~/openvino_download/* $ROS2_WS/src/YOLOX-ROS/weights/openvino/
-cd $ROS2_WS
-colcon build --symlink-install
+cp -r ~/openvino_download/* $THIS_PROJECT_ROOT/weights/openvino/

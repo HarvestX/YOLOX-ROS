@@ -21,7 +21,7 @@ typedef struct
 class bboxes_from_yaml
 {
 public:
-    bool load_yaml(std::string filename)
+    bool loadYaml(std::string filename)
     {
         std::ifstream file(filename);
         coco output;
@@ -36,7 +36,6 @@ public:
         auto class_info = node["class_info"];
         for (auto it = class_info.begin(); it != class_info.end(); it++)
         {
-            // std::cout << it->first.as<std::string>();
             // get color
             auto color_node = it->second;
             color bbox_color;

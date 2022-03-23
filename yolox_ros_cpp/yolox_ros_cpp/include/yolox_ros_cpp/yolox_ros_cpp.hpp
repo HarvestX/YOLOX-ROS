@@ -53,8 +53,8 @@ namespace yolox_ros_cpp
         image_transport::Publisher pub_image_;
         rclcpp::Service<yolo_msgs::srv::DetectObject>::SharedPtr srv_detect_object_;
 
-        yolo_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
-        std::vector<yolo_msgs::msg::BoundingBox> objects_to_bbox_vec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+        yolo_msgs::msg::BoundingBoxes objectsToBboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+        std::vector<yolo_msgs::msg::BoundingBox> objectsToBboxVec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
 
         std::string getModelPath(const std::string &model_path);
 
@@ -62,7 +62,7 @@ namespace yolox_ros_cpp
         bool imshow_ = true;
 
         // bboxes_from_yaml bboxes;
-        void draw_objects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects);
+        void drawObjects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects);
         std::string yaml_file_name_;
     };
 }

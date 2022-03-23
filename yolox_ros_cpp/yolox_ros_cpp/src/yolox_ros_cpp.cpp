@@ -158,7 +158,7 @@ namespace yolox_ros_cpp
         if (this->yaml_file_name_.size() > 0)
         {
             RCLCPP_INFO(this->get_logger(), "Set parameter class_yaml file path: '%s'", this->yaml_file_name_.c_str());
-            if (this->load_yaml(this->yaml_file_name_))
+            if (this->loadYaml(this->yaml_file_name_))
             {
                 RCLCPP_INFO(this->get_logger(), "Load class_yaml file success");
             }
@@ -180,11 +180,11 @@ namespace yolox_ros_cpp
 
         if (this->yaml_file_name_.size() > 0)
         {
-            this->draw_objects(frame, objects);
+            this->drawObjects(frame, objects);
         }
         else
         {
-            yolox_cpp::utils::draw_objects(frame, objects);
+            yolox_cpp::utils::drawObjects(frame, objects);
         }
 
         if (this->imshow_)
@@ -197,7 +197,7 @@ namespace yolox_ros_cpp
             }
         }
 
-        auto boxes = objects_to_bboxes(frame, objects, img->header);
+        auto boxes = objectsToBboxes(frame, objects, img->header);
         this->pub_bboxes_->publish(boxes);
 
         sensor_msgs::msg::Image::SharedPtr pub_img;
@@ -222,7 +222,7 @@ namespace yolox_ros_cpp
         auto now = std::chrono::system_clock::now();
         auto objects = this->yolox_->inference(frame);
 
-        std::vector<yolo_msgs::msg::BoundingBox> boxes = objects_to_bbox_vec(frame, objects, img->header);
+        std::vector<yolo_msgs::msg::BoundingBox> boxes = objectsToBboxVec(frame, objects, img->header);
         res->bounding_boxes = boxes;
 
         auto end = std::chrono::system_clock::now();
@@ -230,7 +230,7 @@ namespace yolox_ros_cpp
         RCLCPP_INFO(this->get_logger(), "srv-fps: %f", 1000.0f / elapsed.count());
     }
 
-    yolo_msgs::msg::BoundingBoxes YoloXNode::objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header)
+    yolo_msgs::msg::BoundingBoxes YoloXNode::objectsToBboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header)
     {
         yolo_msgs::msg::BoundingBoxes boxes;
         (void)frame;
@@ -258,7 +258,7 @@ namespace yolox_ros_cpp
         return boxes;
     }
     
-    std::vector<yolo_msgs::msg::BoundingBox> YoloXNode::objects_to_bbox_vec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header)
+    std::vector<yolo_msgs::msg::BoundingBox> YoloXNode::objectsToBboxVec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header)
     {
         std::vector<yolo_msgs::msg::BoundingBox> boxes;
         (void)frame;
@@ -286,7 +286,7 @@ namespace yolox_ros_cpp
         return boxes;
     }
 
-    void YoloXNode::draw_objects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects)
+    void YoloXNode::drawObjects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects)
     {
 
         // cv::Mat image = bgr.clone();

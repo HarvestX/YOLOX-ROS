@@ -93,7 +93,7 @@ namespace using_service_v4l2camera
         if (this->yaml_file_name_.size() > 0)
         {
             RCLCPP_INFO(this->get_logger(), "Set parameter class_yaml file path: '%s'", this->yaml_file_name_.c_str());
-            if (this->load_yaml(this->yaml_file_name_))
+            if (this->loadYaml(this->yaml_file_name_))
             {
                 RCLCPP_INFO(this->get_logger(), "Load class_yaml file success");
             }

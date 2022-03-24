@@ -2,27 +2,31 @@
 #define _YOLOX_ROS_CPP_YOLOX_ROS_CPP_HPP
 #include <math.h>
 #include <chrono>
+#include <unistd.h>
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
-// #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.hpp>
 
-#include "bboxes_ex_msgs/msg/bounding_box.hpp"
-#include "bboxes_ex_msgs/msg/bounding_boxes.hpp"
+#include <yolo_msgs/msg/bounding_box.hpp>
+#include <yolo_msgs/msg/bounding_boxes.hpp>
+#include <yolo_msgs/srv/detect_object.hpp>
 
-#include "yolox_cpp/yolox.hpp"
-#include "yolox_cpp/utils.hpp"
+#include <yolox_cpp/yolox.hpp>
+#include <yolox_cpp/utils.hpp>
 
-namespace yolox_ros_cpp{
+#include "yolox_ros_cpp/bboxes_from_yaml.hpp"
+namespace yolox_ros_cpp
+{
 
-    class YoloXNode : public rclcpp::Node
+    class YoloXNode : public rclcpp::Node, public bboxes_from_yaml
     {
     public:
-        YoloXNode(const rclcpp::NodeOptions& options);
-        YoloXNode(const std::string &node_name, const rclcpp::NodeOptions& options);
+        YoloXNode(const rclcpp::NodeOptions &options);
+        YoloXNode(const std::string &node_name, const rclcpp::NodeOptions &options);
 
     private:
         void initializeParameter();
@@ -40,15 +44,26 @@ namespace yolox_ros_cpp{
         std::string publish_boundingbox_topic_name_;
 
         image_transport::Subscriber sub_image_;
-        void colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr& ptr);
+        void colorImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr &ptr);
+        void colorImageSrvCallback(const std::shared_ptr<rmw_request_id_t> request_header,
+                                   const std::shared_ptr<yolo_msgs::srv::DetectObject::Request> req,
+                                   std::shared_ptr<yolo_msgs::srv::DetectObject::Response> res);
 
-        rclcpp::Publisher<bboxes_ex_msgs::msg::BoundingBoxes>::SharedPtr pub_bboxes_;
+        rclcpp::Publisher<yolo_msgs::msg::BoundingBoxes>::SharedPtr pub_bboxes_;
         image_transport::Publisher pub_image_;
+        rclcpp::Service<yolo_msgs::srv::DetectObject>::SharedPtr srv_detect_object_;
 
-        bboxes_ex_msgs::msg::BoundingBoxes objects_to_bboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+        yolo_msgs::msg::BoundingBoxes objectsToBboxes(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+        std::vector<yolo_msgs::msg::BoundingBox> objectsToBboxVec(cv::Mat frame, std::vector<yolox_cpp::Object> objects, std_msgs::msg::Header header);
+
+        std::string getModelPath(const std::string &model_path);
 
         std::string WINDOW_NAME_ = "YOLOX";
         bool imshow_ = true;
+
+        // bboxes_from_yaml bboxes;
+        void drawObjects(cv::Mat bgr, const std::vector<yolox_cpp::Object> &objects);
+        std::string yaml_file_name_;
     };
 }
 #endif

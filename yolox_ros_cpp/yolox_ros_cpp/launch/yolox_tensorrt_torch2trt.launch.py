@@ -39,5 +39,5 @@ def generate_launch_description():
 
     return launch.LaunchDescription([
         container,
-        rqt_graph,
+        # rqt_graph,
     ])

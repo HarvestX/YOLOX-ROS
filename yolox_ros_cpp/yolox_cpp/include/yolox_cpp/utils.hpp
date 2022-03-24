@@ -8,7 +8,7 @@
 namespace yolox_cpp{
     namespace utils{
 
-        static void draw_objects(cv::Mat bgr, const std::vector<Object>& objects)
+        static void drawObjects(cv::Mat bgr, const std::vector<Object>& objects)
         {
 
             // cv::Mat image = bgr.clone();

@@ -29,9 +29,9 @@ namespace yolox_cpp{
         public:
             AbsYoloX(){}
             AbsYoloX(float nms_th=0.45, float conf_th=0.3,
-                     int input_width=416, int input_height=416)
+                     int input_width=416, int input_height=416, int num_classes=80)
             :nms_thresh_(nms_th), bbox_conf_thresh_(conf_th),
-             input_w_(input_width), input_h_(input_height)
+             input_w_(input_width), input_h_(input_height), num_classes_(num_classes)
             {}
             virtual std::vector<Object> inference(cv::Mat frame) = 0;
         protected:
@@ -39,7 +39,7 @@ namespace yolox_cpp{
             int input_h_;
             float nms_thresh_;
             float bbox_conf_thresh_;
-            int num_classes_ = 80;
+            int num_classes_;
     };
 }
 #endif

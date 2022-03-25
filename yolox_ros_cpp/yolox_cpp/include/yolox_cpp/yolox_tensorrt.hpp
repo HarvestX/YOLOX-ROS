@@ -35,7 +35,7 @@ namespace yolox_cpp{
         public:
             YoloXTensorRT(file_name_t path_to_engine, int device=0,
                           float nms_th=0.45, float conf_th=0.3,
-                          int input_width=416, int input_height=416);
+                          int input_width=416, int input_height=416, int num_classes=80);
             ~YoloXTensorRT();
             std::vector<Object> inference(cv::Mat frame) override;
 

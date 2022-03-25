@@ -4,8 +4,8 @@ namespace yolox_cpp{
 
     YoloXTensorRT::YoloXTensorRT(file_name_t path_to_engine, int device,
                                  float nms_th, float conf_th,
-                                 int input_width, int input_height)
-    :AbsYoloX(nms_th, conf_th, input_width, input_height),
+                                 int input_width, int input_height, int num_classes)
+    :AbsYoloX(nms_th, conf_th, input_width, input_height, num_classes),
      DEVICE_(device)
     {
         cudaSetDevice(this->DEVICE_);

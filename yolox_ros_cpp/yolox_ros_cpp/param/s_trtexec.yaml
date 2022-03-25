@@ -5,6 +5,7 @@ image_size/height: 640
 image_size/width: 640
 nms: 0.45
 conf: 0.30
+class_count: 80
 imshow_isshow: true
 src_image_topic_name: image_raw
 publish_image_topic_name: yolox/image_raw

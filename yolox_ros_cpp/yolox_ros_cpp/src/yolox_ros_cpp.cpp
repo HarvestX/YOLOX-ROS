@@ -72,6 +72,7 @@ namespace yolox_ros_cpp
         else if (model_path.find("/") == 0)
         {
             RCLCPP_INFO(this->get_logger(), "Model path is absolute path (/)");
+            return_model_path = model_path;
             // do nothing
         }
         else if (model_path.find(".") == 0)

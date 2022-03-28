@@ -43,9 +43,6 @@ namespace yolox_cpp{
             int DEVICE_ = 0;
             float* blob_;
 
-            const char* INPUT_BLOB_NAME = "input_0";
-            const char* OUTPUT_BLOB_NAME = "output_0";
-
             Logger gLogger_;
             std::unique_ptr<IRuntime> runtime_;
             std::unique_ptr<ICudaEngine> engine_;

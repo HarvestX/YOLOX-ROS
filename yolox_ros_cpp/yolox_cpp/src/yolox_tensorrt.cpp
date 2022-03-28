@@ -47,8 +47,8 @@ namespace yolox_cpp{
         // assert(this->engine_->getNbBindings() == 2);
         // In order to bind the buffers, we need to know the names of the input and output tensors.
         // Note that indices are guaranteed to be less than IEngine::getNbBindings()
-        // assert(this->engine_->getBindingDataType(this->inputIndex_) == nvinfer1::DataType::kFLOAT);
-        // assert(this->engine_->getBindingDataType(this->outputIndex_) == nvinfer1::DataType::kFLOAT);
+        assert(this->engine_->getBindingDataType(this->inputIndex_) == nvinfer1::DataType::kFLOAT);
+        assert(this->engine_->getBindingDataType(this->outputIndex_) == nvinfer1::DataType::kFLOAT);
     }
     YoloXTensorRT::~YoloXTensorRT(){
     }
@@ -191,13 +191,6 @@ namespace yolox_cpp{
         const ICudaEngine& engine = context.getEngine();
         assert(engine.getNbBindings() == 2);
         void* buffers[2];
-
-        const int inputIndex = engine.getBindingIndex(this->INPUT_BLOB_NAME);
-
-        assert(engine.getBindingDataType(inputIndex) == nvinfer1::DataType::kFLOAT);
-        const int outputIndex = engine.getBindingIndex(this->OUTPUT_BLOB_NAME);
-        assert(engine.getBindingDataType(outputIndex) == nvinfer1::DataType::kFLOAT);
-        int mBatchSize = engine.getMaxBatchSize();
 
         // Create GPU buffers on device
         CHECK(cudaMalloc(&buffers[this->inputIndex_], 3 * this->input_h_ * this->input_w_ * sizeof(float)));

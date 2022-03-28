@@ -35,43 +35,39 @@ namespace yolox_cpp{
         assert(this->context_ != nullptr);
         delete[] trtModelStream;
 
-        auto input_dims = this->engine_->getBindingDimensions(0);
-        int input_size = 1;
-        for(int j=0;j<input_dims.nbDims;j++) {
-            input_size *= input_dims.d[j];
-        }
-        assert(input_size == 3 * this->input_h_ * this->input_w_);
-
         auto out_dims = this->engine_->getBindingDimensions(1);
         this->output_size_ = 1;
         for(int j=0;j<out_dims.nbDims;j++) {
             this->output_size_ *= out_dims.d[j];
         }
+        // this->prob_ = new float[this->output_size_];
         
         // Pointers to input and output device buffers to pass to engine.
         // Engine requires exactly IEngine::getNbBindings() number of buffers.
-        assert(this->engine_->getNbBindings() == 2);
+        // assert(this->engine_->getNbBindings() == 2);
         // In order to bind the buffers, we need to know the names of the input and output tensors.
         // Note that indices are guaranteed to be less than IEngine::getNbBindings()
-        assert(this->engine_->getBindingDataType(this->inputIndex_) == nvinfer1::DataType::kFLOAT);
-        assert(this->engine_->getBindingDataType(this->outputIndex_) == nvinfer1::DataType::kFLOAT);
+        // assert(this->engine_->getBindingDataType(this->inputIndex_) == nvinfer1::DataType::kFLOAT);
+        // assert(this->engine_->getBindingDataType(this->outputIndex_) == nvinfer1::DataType::kFLOAT);
     }
     YoloXTensorRT::~YoloXTensorRT(){
     }
+
+    // callback funciton for tensorrt
     std::vector<Object> YoloXTensorRT::inference(cv::Mat frame){
         this->pr_img_ = static_resize(frame);
 
-        float* input = blobFromImage(this->pr_img_);
-        float* output = new float[this->output_size_];
-        this->doInference(input, output);
-        
-        float scale = std::min(this->input_w_ / (frame.cols*1.0), this->input_h_ / (frame.rows*1.0));
-        
-        std::vector<Object> objects;
-        decode_outputs(output, objects, scale, frame.cols, frame.rows);
+        static float* prob = new float[this->output_size_];
 
-        delete input;
-        delete output;
+        this->blob_ = blobFromImage(this->pr_img_);
+        float scale = std::min(this->input_w_ / (frame.cols*1.0), this->input_h_ / (frame.rows*1.0));
+        // float* output = new float[this->output_size_];
+        this->doInference(*this->context_, this->blob_, prob, this->output_size_, this->pr_img_.size());
+
+        std::vector<Object> objects;
+        decode_outputs(prob, objects, scale, frame.cols, frame.rows);
+
+        delete this->blob_;
         return objects;
     }
 
@@ -91,10 +87,11 @@ namespace yolox_cpp{
     {
         for (auto stride : strides)
         {
-            int num_grid = this->input_w_ / stride;
-            for (int g1 = 0; g1 < num_grid; g1++)
+            int num_grid_y = this->input_h_ / stride;
+            int num_grid_x = this->input_w_ / stride;
+            for (int g1 = 0; g1 < num_grid_y; g1++)
             {
-                for (int g0 = 0; g0 < num_grid; g0++)
+                for (int g0 = 0; g0 < num_grid_x; g0++)
                 {
                     grid_strides.push_back((GridAndStride){g0, g1, stride});
                 }
@@ -187,10 +184,20 @@ namespace yolox_cpp{
         }
     }
 
-    void YoloXTensorRT::doInference(float* input, float* output) {
+    // void YoloXTensorRT::doInference(float* input, float* output) {
+    void YoloXTensorRT::doInference(IExecutionContext& context, float* input, float* output, const int output_size, cv::Size input_shape) {
         // Pointers to input and output device buffers to pass to engine.
         // Engine requires exactly IEngine::getNbBindings() number of buffers.
+        const ICudaEngine& engine = context.getEngine();
+        assert(engine.getNbBindings() == 2);
         void* buffers[2];
+
+        const int inputIndex = engine.getBindingIndex(this->INPUT_BLOB_NAME);
+
+        assert(engine.getBindingDataType(inputIndex) == nvinfer1::DataType::kFLOAT);
+        const int outputIndex = engine.getBindingIndex(this->OUTPUT_BLOB_NAME);
+        assert(engine.getBindingDataType(outputIndex) == nvinfer1::DataType::kFLOAT);
+        int mBatchSize = engine.getMaxBatchSize();
 
         // Create GPU buffers on device
         CHECK(cudaMalloc(&buffers[this->inputIndex_], 3 * this->input_h_ * this->input_w_ * sizeof(float)));
@@ -249,14 +256,12 @@ namespace yolox_cpp{
 
                     objects.push_back(obj);
                 }
-
             } // class loop
-
         } // point anchor loop
     }
 
     float* YoloXTensorRT::blobFromImage(cv::Mat& img){
-        cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
+        // cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
 
         float* blob = new float[img.total()*3];
         const int channels = 3;
@@ -315,7 +320,5 @@ namespace yolox_cpp{
             objects[i].rect.height = y1 - y0;
         }
     }
-
-
 } // namespace yolox_cpp
 

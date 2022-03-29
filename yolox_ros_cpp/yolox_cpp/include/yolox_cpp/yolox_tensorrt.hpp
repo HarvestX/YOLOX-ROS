@@ -35,12 +35,13 @@ namespace yolox_cpp{
         public:
             YoloXTensorRT(file_name_t path_to_engine, int device=0,
                           float nms_th=0.45, float conf_th=0.3,
-                          int input_width=416, int input_height=416);
+                          int input_width=416, int input_height=416, int num_classes=80);
             ~YoloXTensorRT();
             std::vector<Object> inference(cv::Mat frame) override;
 
         private:
             int DEVICE_ = 0;
+            float* blob_;
 
             Logger gLogger_;
             std::unique_ptr<IRuntime> runtime_;
@@ -65,7 +66,7 @@ namespace yolox_cpp{
             void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, float* feat_blob, float prob_threshold, std::vector<Object>& objects);
             float* blobFromImage(cv::Mat& img);
             void decode_outputs(float* prob, std::vector<Object>& objects, float scale, const int img_w, const int img_h);
-            void doInference(float* input, float* output);
+            void doInference(IExecutionContext& context, float* input, float* output, const int output_size, cv::Size input_shape);
     };
 } // namespace yolox_cpp
 

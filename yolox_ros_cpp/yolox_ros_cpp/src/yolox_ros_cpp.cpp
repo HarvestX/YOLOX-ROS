@@ -24,7 +24,7 @@ namespace yolox_ros_cpp
             RCLCPP_INFO(this->get_logger(), "Model Type is TensorRT");
             this->yolox_ = std::make_unique<yolox_cpp::YoloXTensorRT>(this->model_path_, std::stoi(this->device_),
                                                                       this->nms_th_, this->conf_th_,
-                                                                      this->image_width_, this->image_height_);
+                                                                      this->image_width_, this->image_height_, this->class_count_);
 #else
             RCLCPP_ERROR(this->get_logger(), "yolox_cpp is not built with TensorRT");
             rclcpp::shutdown();
@@ -36,7 +36,7 @@ namespace yolox_ros_cpp
             RCLCPP_INFO(this->get_logger(), "Model Type is OpenVINO");
             this->yolox_ = std::make_unique<yolox_cpp::YoloXOpenVINO>(this->model_path_, this->device_,
                                                                       this->nms_th_, this->conf_th_,
-                                                                      this->image_width_, this->image_height_);
+                                                                      this->image_width_, this->image_height_, this->class_count_);
 #else
             RCLCPP_ERROR(this->get_logger(), "yolox_cpp is not built with OpenVINO");
             rclcpp::shutdown();
@@ -72,6 +72,7 @@ namespace yolox_ros_cpp
         else if (model_path.find("/") == 0)
         {
             RCLCPP_INFO(this->get_logger(), "Model path is absolute path (/)");
+            return_model_path = model_path;
             // do nothing
         }
         else if (model_path.find(".") == 0)
@@ -114,6 +115,8 @@ namespace yolox_ros_cpp
         this->declare_parameter<std::string>("publish_boundingbox_topic_name", "yolox/bounding_boxes");
 
         this->declare_parameter<std::string>("class_yaml", "");
+        this->declare_parameter<int>("class_count", 80);
+
 
         this->get_parameter("imshow_isshow", this->imshow_);
         this->get_parameter("model_path", this->model_path_);
@@ -128,6 +131,8 @@ namespace yolox_ros_cpp
         this->get_parameter("publish_boundingbox_topic_name", this->publish_boundingbox_topic_name_);
 
         this->get_parameter("class_yaml", this->yaml_file_name_);
+        this->get_parameter("class_count", this->class_count_);
+
 
         RCLCPP_INFO(this->get_logger(), "Set parameter imshow_isshow: %i", this->imshow_);
         // RCLCPP_INFO(this->get_logger(), "Set parameter model_path: '%s'", this->model_path_.c_str());
@@ -141,6 +146,7 @@ namespace yolox_ros_cpp
         RCLCPP_INFO(this->get_logger(), "Set parameter publish_image_topic_name: '%s'", this->publish_image_topic_name_.c_str());
 
         RCLCPP_INFO(this->get_logger(), "Set parameter publish_boundingbox_topic_name: '%s'", this->publish_boundingbox_topic_name_.c_str());
+        RCLCPP_INFO(this->get_logger(), "Set parameter class count: '%d'", this->class_count_);
 
         this->model_path_ = this->getModelPath(this->model_path_);
         this->yaml_file_name_ = this->getModelPath(this->yaml_file_name_);
